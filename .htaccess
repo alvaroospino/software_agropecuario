@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /proyecto_agropecuario/
+
+# Excluir dashboard.php de la redirección
+RewriteCond %{REQUEST_URI} !^/proyecto_agropecuario/dashboard\.php$
+
+# Si el archivo o directorio existe, úsalo directamente
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirige todas las demás solicitudes a index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
