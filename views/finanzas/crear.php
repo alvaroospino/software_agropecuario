@@ -4,6 +4,10 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/auth.php';
 // Requerir login
 requireLogin();
+
+// Obtener el ID del usuario actual de la sesión
+$usuario_id = $_SESSION['user_id']; // Ajusta esto si usas un nombre diferente en tu sesión
+
 $db = new Database();
 
 // Obtener categorías existentes para autocompletar
@@ -46,9 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Si no hay errores, guardar
     if (empty($errores)) {
-        $sql = "INSERT INTO transacciones (fecha, concepto, tipo, categoria, monto, notas, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, NOW())";
-        $params = [$fecha, $concepto, $tipo, $categoria, $monto, $notas];
+        $sql = "INSERT INTO transacciones (fecha, concepto, tipo, categoria, monto, notas, usuario_id, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+        $params = [$fecha, $concepto, $tipo, $categoria, $monto, $notas, $usuario_id];
         
         if ($db->query($sql, $params)) {
             $mensaje = 'Transacción registrada correctamente';

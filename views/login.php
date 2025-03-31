@@ -27,11 +27,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $db->selectOne('SELECT id, nombre, email, password FROM usuarios WHERE email = ?', [$email]);
         
         if ($user && password_verify($password, $user['password'])) {
+            // Regenerar ID de sesión para prevenir ataques de fijación de sesión
+            session_regenerate_id(true);
+            
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_nombre'] = $user['nombre'];
             setMessage('Inicio de sesión exitoso. ¡Bienvenido!');
             redirect('dashboard.php');
-        } else {
+        }else {
             $errors[] = 'Email o contraseña incorrectos';
         }
     }

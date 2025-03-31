@@ -57,3 +57,31 @@ body {
     border-left: 4px solid #198754;
     background-color: #f0f9f0;
 }
+
+
+/* Estilos para botones */
+/* Estilos para las notas completadas */
+.list-group-item.list-group-item-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.list-group-item button.btn-outline-success {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.list-group-item button.btn-outline-success:hover {
+    background-color: #28a745;
+    color: white;
+}
+
+.list-group-item button.btn-outline-secondary {
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.list-group-item button.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}

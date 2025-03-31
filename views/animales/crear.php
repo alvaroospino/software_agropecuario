@@ -6,53 +6,60 @@ require_once __DIR__ . '/../../includes/auth.php';
 // Requerir login
 requireLogin();
 
+
 $db = new Database();
 $errors = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Recoger y validar datos
-    $identificacion = trim($_POST['identificacion'] ?? '');
+    $nombre = trim($_POST['nombre'] ?? '');
     $tipo_produccion = trim($_POST['tipo_produccion'] ?? '');
     $fecha_nacimiento = trim($_POST['fecha_nacimiento'] ?? '');
     $peso = trim($_POST['peso'] ?? '');
     $ubicacion = trim($_POST['ubicacion'] ?? '');
-    
+    $usuario_id = $_SESSION['user_id'] ?? null; // Obtener usuario de la sesión
+
     // Validaciones
-    if (empty($identificacion)) {
-        $errors[] = 'La identificación del animal es obligatoria';
+    if (empty($nombre)) {
+        $errors[] = 'El nombre del animal es obligatorio.';
     }
-    
+
     if (empty($tipo_produccion)) {
-        $errors[] = 'El tipo de producción es obligatorio';
+        $errors[] = 'El tipo de producción es obligatorio.';
     }
-    
+
     if (!empty($peso) && !is_numeric($peso)) {
-        $errors[] = 'El peso debe ser un número válido';
+        $errors[] = 'El peso debe ser un número válido.';
     }
-    
-    // Verificar si la identificación ya existe
+
+    if (!$usuario_id) {
+        $errors[] = 'Usuario no identificado.';
+    }
+
+    // Verificar si el nombre ya existe
     if (empty($errors)) {
-        $existingAnimal = $db->selectOne('SELECT id FROM animales WHERE identificacion = ?', [$identificacion]);
-        
+        $existingAnimal = $db->selectOne('SELECT id FROM animales WHERE nombre = ?', [$nombre]);
+
         if ($existingAnimal) {
-            $errors[] = 'Ya existe un animal con esta identificación';
+            $errors[] = 'Ya existe un animal con este nombre.';
         }
     }
-    
+
     // Guardar animal
     if (empty($errors)) {
         $animalData = [
-            'identificacion' => $identificacion,
+            'nombre' => $nombre,
             'tipo_produccion' => $tipo_produccion,
             'fecha_nacimiento' => !empty($fecha_nacimiento) ? $fecha_nacimiento : null,
             'peso' => !empty($peso) ? $peso : null,
-            'ubicacion' => $ubicacion
-        ];
-        
+            'ubicacion' => $ubicacion,
+            'usuario_id' => $_SESSION['user_id'] // <-- Agregar el usuario de la sesión
+        ];        
+
         $id = $db->insert('animales', $animalData);
-        
+
         if ($id) {
-            setMessage('Animal registrado correctamente');
+            setMessage('Animal registrado correctamente.');
             redirect('views/animales/lista.php');
         } else {
             $errors[] = 'Error al registrar el animal. Inténtalo de nuevo.';
@@ -82,15 +89,15 @@ include '../../includes/header.php';
                     </ul>
                 </div>
             <?php endif; ?>
-            
+
             <form action="" method="POST">
                 <div class="mb-3">
-                    <label for="identificacion" class="form-label">Identificación *</label>
-                    <input type="text" class="form-control" id="identificacion" name="identificacion" 
-                           value="<?= $identificacion ?? '' ?>" required>
-                    <div class="form-text">Código o nombre único del animal</div>
+                    <label for="nombre" class="form-label">Nombre *</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" 
+                           value="<?= htmlspecialchars($nombre ?? '') ?>" required>
+                    <div class="form-text">Nombre único del animal.</div>
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="tipo_produccion" class="form-label">Tipo de Producción *</label>
                     <select class="form-select" id="tipo_produccion" name="tipo_produccion" required>
@@ -102,26 +109,26 @@ include '../../includes/header.php';
                         <option value="Otro" <?= (isset($tipo_produccion) && $tipo_produccion == 'Otro') ? 'selected' : '' ?>>Otro</option>
                     </select>
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
                     <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" 
-                           value="<?= $fecha_nacimiento ?? '' ?>">
+                           value="<?= htmlspecialchars($fecha_nacimiento ?? '') ?>">
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="peso" class="form-label">Peso (kg)</label>
                     <input type="number" step="0.01" class="form-control" id="peso" name="peso" 
-                           value="<?= $peso ?? '' ?>">
+                           value="<?= htmlspecialchars($peso ?? '') ?>">
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="ubicacion" class="form-label">Ubicación</label>
                     <input type="text" class="form-control" id="ubicacion" name="ubicacion" 
-                           value="<?= $ubicacion ?? '' ?>">
+                           value="<?= htmlspecialchars($ubicacion ?? '') ?>">
                     <div class="form-text">Potrero, corral, establo, etc.</div>
                 </div>
-                
+
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary">Registrar Animal</button>
                 </div>

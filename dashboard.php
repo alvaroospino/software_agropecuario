@@ -15,21 +15,21 @@ if ($currentUserId > 0) {
 
 $db = new Database();
 
-// Obtener estadísticas básicas
-$totalAnimales = $db->selectOne('SELECT COUNT(*) as total FROM animales')['total'] ?? 0;
-$ingresos = $db->selectOne('SELECT SUM(monto) as total FROM transacciones WHERE tipo = "ingreso"')['total'] ?? 0;
-$egresos = $db->selectOne('SELECT SUM(monto) as total FROM transacciones WHERE tipo = "egreso"')['total'] ?? 0;
+// Obtener estadísticas básicas del usuario
+$totalAnimales = $db->selectOne('SELECT COUNT(*) as total FROM animales WHERE usuario_id = ?', [$currentUserId])['total'] ?? 0;
+$ingresos = $db->selectOne('SELECT SUM(monto) as total FROM transacciones WHERE usuario_id = ? AND tipo = "ingreso"', [$currentUserId])['total'] ?? 0;
+$egresos = $db->selectOne('SELECT SUM(monto) as total FROM transacciones WHERE usuario_id = ? AND tipo = "egreso"', [$currentUserId])['total'] ?? 0;
 $balance = $ingresos - $egresos;
-$notasPendientes = $db->selectOne('SELECT COUNT(*) as total FROM notas WHERE completada = 0')['total'] ?? 0;
+$notasPendientes = $db->selectOne('SELECT COUNT(*) as total FROM notas WHERE usuario_id = ? AND completada = 0', [$currentUserId])['total'] ?? 0;
 
-// Obtener últimos animales registrados
-$ultimosAnimales = $db->select('SELECT * FROM animales ORDER BY fecha_registro DESC LIMIT 5');
+// Obtener últimos animales registrados por el usuario
+$ultimosAnimales = $db->select('SELECT * FROM animales WHERE usuario_id = ? ORDER BY fecha_registro DESC LIMIT 5', [$currentUserId]);
 
-// Obtener últimas transacciones
-$ultimasTransacciones = $db->select('SELECT * FROM transacciones ORDER BY fecha_registro DESC LIMIT 5');
+// Obtener últimas transacciones del usuario
+$ultimasTransacciones = $db->select('SELECT * FROM transacciones WHERE usuario_id = ? ORDER BY fecha_registro DESC LIMIT 5', [$currentUserId]);
 
-// Obtener próximos recordatorios
-$recordatorios = $db->select('SELECT * FROM notas WHERE fecha_recordatorio >= CURDATE() AND completada = 0 ORDER BY fecha_recordatorio ASC LIMIT 5');
+// Obtener próximos recordatorios del usuario
+$recordatorios = $db->select('SELECT * FROM notas WHERE usuario_id = ? AND fecha_recordatorio >= CURDATE() AND completada = 0 ORDER BY fecha_recordatorio ASC LIMIT 5', [$currentUserId]); 
 
 // Obtener estadísticas semanales de ingresos (últimos 7 días)
 $estadisticasSemanales = $db->select('
@@ -39,13 +39,14 @@ $estadisticasSemanales = $db->select('
     FROM 
         transacciones
     WHERE 
-        fecha >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        usuario_id = ? 
+        AND fecha >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
         AND tipo = "ingreso"
     GROUP BY 
         DATE_FORMAT(fecha, "%a")
     ORDER BY 
         FIELD(DATE_FORMAT(fecha, "%a"), "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-');
+', [$currentUserId]);
 
 // Preparar datos para gráfico
 $diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -60,7 +61,8 @@ foreach ($estadisticasSemanales as $est) {
 }
 
 // Función auxiliar para traducir días de inglés a español abreviado
-function traducirDia($diaEn) {
+function traducirDia($diaEn)
+{
     $traduccion = [
         'Mon' => 'Lun',
         'Tue' => 'Mar',
@@ -81,12 +83,13 @@ $animalesSemana = $db->select('
     FROM 
         animales
     WHERE 
-        fecha_registro >= DATE_SUB(CURDATE(), INTERVAL 4 WEEK)
+        usuario_id = ?
+        AND fecha_registro >= DATE_SUB(CURDATE(), INTERVAL 4 WEEK)
     GROUP BY 
         WEEK(fecha_registro)
     ORDER BY 
         semana ASC
-');
+', [$currentUserId]);
 
 // Obtener estadísticas de transacciones por semana (último mes)
 $transaccionesSemana = $db->select('
@@ -96,12 +99,13 @@ $transaccionesSemana = $db->select('
     FROM 
         transacciones
     WHERE 
-        fecha >= DATE_SUB(CURDATE(), INTERVAL 4 WEEK)
+        usuario_id = ?
+        AND fecha >= DATE_SUB(CURDATE(), INTERVAL 4 WEEK)
     GROUP BY 
         WEEK(fecha)
     ORDER BY 
         semana ASC
-');
+', [$currentUserId]);
 
 // Preparar datos para el gráfico semanal
 $semanasLabel = [];
@@ -142,6 +146,7 @@ foreach ($transaccionesSemana as $dato) {
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -236,7 +241,7 @@ foreach ($transaccionesSemana as $dato) {
             border-left: 3px solid transparent;
         }
 
-        .sidebar-menu li a:hover, 
+        .sidebar-menu li a:hover,
         .sidebar-menu li a.active {
             color: var(--text-color);
             background-color: rgba(255, 255, 255, 0.05);
@@ -293,16 +298,16 @@ foreach ($transaccionesSemana as $dato) {
             .sidebar {
                 margin-left: calc(-1 * var(--sidebar-width));
             }
-            
+
             .sidebar.active {
                 margin-left: 0;
             }
-            
+
             .main-content {
                 margin-left: 0;
                 width: 100%;
             }
-            
+
             .sidebar-toggle {
                 display: block;
             }
@@ -437,7 +442,8 @@ foreach ($transaccionesSemana as $dato) {
             margin-bottom: 0;
         }
 
-        .table td, .table th {
+        .table td,
+        .table th {
             border-top: 1px solid var(--border-color);
             padding: 12px 15px;
             vertical-align: middle;
@@ -549,14 +555,22 @@ foreach ($transaccionesSemana as $dato) {
         }
     </style>
 </head>
+
 <body>
+
     <div class="app-container">
+    <?php if (isset($_GET['mensaje'])): ?>
+    <div class="alert alert-<?= $_GET['tipo'] ?? 'info' ?> alert-dismissible fade show" role="alert">
+        <?= htmlspecialchars($_GET['mensaje']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h3><?= APP_NAME ?></h3>
             </div>
-            
+
             <div class="sidebar-menu">
                 <ul>
                     <li>
@@ -591,22 +605,20 @@ foreach ($transaccionesSemana as $dato) {
                     </li>
                 </ul>
             </div>
-            
-            <!-- User Profile -->
-           <!-- User Profile -->
-<!-- User Profile -->
-<div class="user-profile">
-    <img src="https://via.placeholder.com/40" alt="User Profile">
-    <div class="user-info">
-        <h6><?= isset($currentUser['nombre']) ? htmlspecialchars($currentUser['nombre']) : 'Usuario' ?></h6>
-        <span><?= isset($currentUser['email']) ? htmlspecialchars($currentUser['email']) : 'Invitado' ?></span>
-    </div>
-    <a href="<?= APP_URL ?>/views/logout.php" class="text-muted">
-        <i class="bi bi-box-arrow-right"></i>
-    </a>
-</div>
-        </div>
+
         
+            <!-- User Profile -->
+            <div class="user-profile">
+            <i class="bi bi-person-circle" style="font-size: 40px; color:rgb(33, 106, 165); margin-right: 12px;"></i>                <div class="user-info">
+                    <h6><?= isset($currentUser['nombre']) ? htmlspecialchars($currentUser['nombre']) : 'Usuario' ?></h6>
+                    <span><?= isset($currentUser['email']) ? htmlspecialchars($currentUser['email']) : 'Invitado' ?></span>
+                </div>
+                <a href="<?= APP_URL ?>/views/logout.php" class="text-muted">
+                    <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
         <!-- Main Content -->
         <div class="main-content" id="main-content">
             <div class="dashboard-title">
@@ -618,7 +630,7 @@ foreach ($transaccionesSemana as $dato) {
                     <span class="text-muted me-2"><?= date('d/m/Y') ?></span>
                 </div>
             </div>
-            
+
             <!-- Performance Summary Cards -->
             <div class="performance-summary">
                 <div class="performance-card" style="border-left: 4px solid var(--primary-color);">
@@ -646,7 +658,7 @@ foreach ($transaccionesSemana as $dato) {
                     <h4><?= $balance > 0 ? ceil(($ingresos / ($egresos > 0 ? $egresos : 1)) * 100) . '%' : '0%' ?></h4>
                 </div>
             </div>
-            
+
             <!-- Charts Section -->
             <div class="chart-section">
                 <div class="card">
@@ -677,7 +689,7 @@ foreach ($transaccionesSemana as $dato) {
                                     </div>
                                     <div class="progress mt-4" style="height: 10px; background-color: rgba(0,0,0,0.2);">
                                         <?php $percentage = $ingresos > 0 ? ($balance / $ingresos) * 100 : 0; ?>
-                                        <div class="progress-bar bg-success" role="progressbar" style="width: <?= max(0, min(100, $percentage)) ?>%" 
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: <?= max(0, min(100, $percentage)) ?>%"
                                             aria-valuenow="<?= $percentage ?>" aria-valuemin="0" aria-valuemax="100"></div>
                                     </div>
                                 </div>
@@ -687,21 +699,21 @@ foreach ($transaccionesSemana as $dato) {
                 </div>
 
                 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Estadísticas Semanales</h5>
-        <div class="btn-group btn-group-sm">
-            <button type="button" class="btn btn-primary active" id="showIngresos">Ingresos</button>
-            <button type="button" class="btn btn-outline-primary" id="showAnimales">Animales</button>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="chart-container">
-            <canvas id="barChart"></canvas>
-        </div>
-    </div>
-</div>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Estadísticas Semanales</h5>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-primary active" id="showIngresos">Ingresos</button>
+                            <button type="button" class="btn btn-outline-primary" id="showAnimales">Animales</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
+
             <!-- Data Tables Section -->
             <div class="row">
                 <div class="col-md-6 mb-4">
@@ -720,7 +732,7 @@ foreach ($transaccionesSemana as $dato) {
                                     <table class="table table-hover data-table">
                                         <thead>
                                             <tr>
-                                                <th>ID</th>
+                                                <th>Nombre</th>
                                                 <th>Tipo</th>
                                                 <th>Peso</th>
                                                 <th>Estado</th>
@@ -728,33 +740,33 @@ foreach ($transaccionesSemana as $dato) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                        <?php foreach ($ultimosAnimales as $animal): ?>
-    <?php 
-    // Determinar color según estado real
-    $estadoColor = 'primary';
-    if ($animal['estado'] == 'ACTIVO') {
-        $estadoColor = 'success';
-    } elseif ($animal['estado'] == 'EN PROGRESO') {
-        $estadoColor = 'purple';
-    } elseif ($animal['estado'] == 'REVISIÓN') {
-        $estadoColor = 'warning';
-    }
-    ?>
-    <tr>
-        <td><?= $animal['identificacion'] ?></td>
-        <td><?= $animal['tipo_produccion'] ?></td>
-        <td><?= $animal['peso'] ?> kg</td>
-        <td>
-            <span class="status-badge bg-<?= $estadoColor ?>" style="color: white;">
-                <?= $animal['estado'] ?>
-            </span>
-        </td>
-        <td>
-            <a href="<?= APP_URL ?>/views/animales/editar.php?id=<?= $animal['id'] ?>" class="action-btn btn-primary">EDITAR</a>
-            <button onclick="confirmarEliminacion(<?= $animal['id'] ?>)" class="action-btn btn-danger">BORRAR</button>
-        </td>
-    </tr>
-<?php endforeach; ?>
+                                            <?php foreach ($ultimosAnimales as $animal): ?>
+                                                <?php
+                                                // Determinar color según estado real
+                                                $estadoColor = 'primary';
+                                                if ($animal['estado'] == 'ACTIVO') {
+                                                    $estadoColor = 'success';
+                                                } elseif ($animal['estado'] == 'EN PROGRESO') {
+                                                    $estadoColor = 'purple';
+                                                } elseif ($animal['estado'] == 'REVISIÓN') {
+                                                    $estadoColor = 'warning';
+                                                }
+                                                ?>
+                                                <tr>
+                                                    <td><?= $animal['nombre'] ?></td>
+                                                    <td><?= $animal['tipo_produccion'] ?></td>
+                                                    <td><?= $animal['peso'] ?> kg</td>
+                                                    <td>
+                                                        <span class="status-badge bg-<?= $estadoColor ?>" style="color: white;">
+                                                            <?= $animal['estado'] ?>
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <a href="<?= APP_URL ?>/views/animales/editar.php?id=<?= $animal['id'] ?>" class="action-btn btn-primary">EDITAR</a>
+                                                        <button onclick="confirmarEliminacion(<?= $animal['id'] ?>)" class="action-btn btn-danger">BORRAR</>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -762,7 +774,7 @@ foreach ($transaccionesSemana as $dato) {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-md-6 mb-4">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
@@ -806,264 +818,282 @@ foreach ($transaccionesSemana as $dato) {
                     </div>
                 </div>
             </div>
-            
+
             <!-- Weekly Status and Recordatorios -->
-            <div class="row">
-                <div class="col-md-12 mb-4">
-                    <div class="card">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Próximos Recordatorios</h5>
-                            <a href="<?= APP_URL ?>/views/notas/listar.php" class="btn btn-sm btn-primary">Ver todos</a>
-                        </div>
-                        <div class="card-body">
-                            <?php if (empty($recordatorios)): ?>
-                                <p class="text-muted">No hay recordatorios próximos.</p>
-                            <?php else: ?>
-                                <div class="row">
-                                    <?php foreach ($recordatorios as $nota): ?>
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100" style="background-color: rgba(0,0,0,0.2);">
-                                                <div class="card-body">
-                                                    <h5 class="card-title"><?= $nota['titulo'] ?></h5>
-                                                    <p class="card-text"><?= substr($nota['contenido'], 0, 100) ?>...</p>
-                                                    <p class="card-text text-muted">
-                                                        <small>
-                                                            <i class="bi bi-clock me-1"></i>
-                                                            <?= date('d/m/Y H:i', strtotime($nota['fecha_recordatorio'])) ?>
-                                                        </small>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
+           
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Próximos Recordatorios</h5>
+                <a href="<?= APP_URL ?>/views/notas/listar.php" class="btn btn-sm btn-primary">Ver todos</a>
             </div>
+            <div class="card-body">
+                <?php if (empty($recordatorios)): ?>
+                    <p class="text-muted">No hay recordatorios próximos.</p>
+                <?php else: ?>
+                    <div class="row">
+                        <?php foreach ($recordatorios as $nota): ?>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100" style="background-color: rgba(0,0,0,0.2);">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><?= $nota['titulo'] ?></h5>
+                                        <p class="card-text"><?= substr($nota['contenido'], 0, 100) ?>...</p>
+                                        <p class="card-text text-muted">
+                                            <small>
+                                                <i class="bi bi-clock me-1"></i>
+                                                <?= date('d/m/Y H:i', strtotime($nota['fecha_recordatorio'])) ?>
+                                            </small>
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <form method="POST" action="<?= APP_URL ?>/views/notas/completar.php">
+                                                <input type="hidden" name="nota_id" value="<?= $nota['id'] ?>">
+                                                <input type="hidden" name="redirect" value="dashboard">
+                                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                                    <i class="bi bi-check-circle"></i> Completar
+                                                </button>
+                                            </form>
+                                            <a href="<?= APP_URL ?>/views/notas/editar.php?id=<?= $nota['id'] ?>" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Toggle sidebar
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        const sidebar = document.getElementById('sidebar');
-        const mainContent = document.getElementById('main-content');
-        
-        if(sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('active');
-                if(sidebar.classList.contains('active')) {
+        function confirmarEliminacion(id) {
+            if (confirm('¿Estás seguro de que deseas eliminar este animal? Esta acción no se puede deshacer.')) {
+                window.location.href = '<?= APP_URL ?>/views/animales/eliminar.php?id=' + id;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar
+            const sidebarToggle = document.getElementById('sidebar-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('active');
+                    if (sidebar.classList.contains('active')) {
+                        mainContent.style.marginLeft = '0';
+                    } else {
+                        mainContent.style.marginLeft = '0';
+                    }
+                });
+            }
+
+            // Responsive checks
+            const checkWidth = function() {
+                if (window.innerWidth <= 992) {
+                    sidebar.classList.remove('active');
                     mainContent.style.marginLeft = '0';
                 } else {
-                    mainContent.style.marginLeft = '0';
+                    sidebar.classList.add('active');
+                    mainContent.style.marginLeft = 'var(--sidebar-width)';
                 }
-            });
-        }
-        
-        // Responsive checks
-        const checkWidth = function() {
-            if(window.innerWidth <= 992) {
-                sidebar.classList.remove('active');
-                mainContent.style.marginLeft = '0';
-            } else {
-                sidebar.classList.add('active');
-                mainContent.style.marginLeft = 'var(--sidebar-width)';
-            }
-        };
-        
-        // Initial check
-        checkWidth();
-        
-        // Check on resize
-        window.addEventListener('resize', checkWidth);
-        
-        // Chart configurations
-        // Gráfico Dona - Balance Financiero
-        const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
-        const doughnutChart = new Chart(doughnutCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Ingresos', 'Egresos'],
-                datasets: [{
-                    label: 'Finanzas',
-                    data: [<?= $ingresos ?>, <?= $egresos ?>],
-                    backgroundColor: [
-                        'rgba(46, 204, 113, 0.8)',
-                        'rgba(231, 76, 60, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(46, 204, 113, 1)',
-                        'rgba(231, 76, 60, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '70%',
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#ffffff'
+            };
+
+            // Initial check
+            checkWidth();
+
+            // Check on resize
+            window.addEventListener('resize', checkWidth);
+
+            // Chart configurations
+            // Gráfico Dona - Balance Financiero
+            const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+            const doughnutChart = new Chart(doughnutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ingresos', 'Egresos'],
+                    datasets: [{
+                        label: 'Finanzas',
+                        data: [<?= $ingresos ?>, <?= $egresos ?>],
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(231, 76, 60, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(46, 204, 113, 1)',
+                            'rgba(231, 76, 60, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#ffffff'
+                            }
                         }
                     }
                 }
-            }
+            });
+
         });
-        
-    });
-    // Gráfico de barras - Ingresos y Animales
+        // Gráfico de barras - Ingresos y Animales
 
-   
-    document.addEventListener('DOMContentLoaded', function() {
-    // Contexto compartido para ambos gráficos
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    let activeChart = null;
-    
-    // Datos para el gráfico de ingresos
-    const ingresosData = {
-        type: 'bar',
-        data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            datasets: [{
-                label: 'Ingresos',
-                data: [<?= implode(', ', $valoresSemana) ?>],
-                backgroundColor: 'rgba(52, 152, 219, 0.8)',
-                borderColor: 'rgba(52, 152, 219, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                        color: '#ffffff'
-                    }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Contexto compartido para ambos gráficos
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            let activeChart = null;
+
+            // Datos para el gráfico de ingresos
+            const ingresosData = {
+                type: 'bar',
+                data: {
+                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: [<?= implode(', ', $valoresSemana) ?>],
+                        backgroundColor: 'rgba(52, 152, 219, 0.8)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
                 },
-                x: {
-                    grid: {
-                        display: false
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#ffffff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#ffffff'
+                            }
+                        }
                     },
-                    ticks: {
-                        color: '#ffffff'
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
                     }
                 }
-            },
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#ffffff'
-                    }
-                }
-            }
-        }
-    };
-    
-    // Datos para el gráfico de animales y transacciones
-    const animalesData = {
-        type: 'bar',
-        data: {
-            labels: <?= json_encode($semanasLabel) ?>,
-            datasets: [{
-                label: 'Animales',
-                data: <?= json_encode($animalesData) ?>,
-                backgroundColor: 'rgba(94, 86, 206, 0.8)',
-                borderColor: 'rgba(94, 86, 206, 1)',
-                borderWidth: 1
-            },
-            {
-                label: 'Transacciones',
-                data: <?= json_encode($transaccionesData) ?>,
-                backgroundColor: 'rgba(46, 204, 113, 0.8)',
-                borderColor: 'rgba(46, 204, 113, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    },
-                    ticks: {
-                        color: '#ffffff'
-                    }
+            };
+
+            // Datos para el gráfico de animales y transacciones
+            const animalesData = {
+                type: 'bar',
+                data: {
+                    labels: <?= json_encode($semanasLabel) ?>,
+                    datasets: [{
+                            label: 'Animales',
+                            data: <?= json_encode($animalesData) ?>,
+                            backgroundColor: 'rgba(94, 86, 206, 0.8)',
+                            borderColor: 'rgba(94, 86, 206, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Transacciones',
+                            data: <?= json_encode($transaccionesData) ?>,
+                            backgroundColor: 'rgba(46, 204, 113, 0.8)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 1
+                        }
+                    ]
                 },
-                x: {
-                    grid: {
-                        display: false
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#ffffff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#ffffff'
+                            }
+                        }
                     },
-                    ticks: {
-                        color: '#ffffff'
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
                     }
                 }
-            },
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#ffffff'
-                    }
+            };
+
+            // Función para mostrar un gráfico específico
+            function showChart(chartConfig) {
+                // Destruir el gráfico activo si existe
+                if (activeChart) {
+                    activeChart.destroy();
                 }
+                // Crear el nuevo gráfico
+                activeChart = new Chart(barCtx, chartConfig);
             }
-        }
-    };
-    
-    // Función para mostrar un gráfico específico
-    function showChart(chartConfig) {
-        // Destruir el gráfico activo si existe
-        if (activeChart) {
-            activeChart.destroy();
-        }
-        // Crear el nuevo gráfico
-        activeChart = new Chart(barCtx, chartConfig);
-    }
-    
-    // Mostrar el gráfico de ingresos por defecto
-    showChart(ingresosData);
-    
-    // Agregar event listeners a los botones
-    document.getElementById('showIngresos').addEventListener('click', function() {
-        document.getElementById('showIngresos').classList.add('active');
-        document.getElementById('showIngresos').classList.remove('btn-outline-primary');
-        document.getElementById('showIngresos').classList.add('btn-primary');
-        
-        document.getElementById('showAnimales').classList.remove('active');
-        document.getElementById('showAnimales').classList.remove('btn-primary');
-        document.getElementById('showAnimales').classList.add('btn-outline-primary');
-        
-        showChart(ingresosData);
-    });
-    
-    document.getElementById('showAnimales').addEventListener('click', function() {
-        document.getElementById('showAnimales').classList.add('active');
-        document.getElementById('showAnimales').classList.remove('btn-outline-primary');
-        document.getElementById('showAnimales').classList.add('btn-primary');
-        
-        document.getElementById('showIngresos').classList.remove('active');
-        document.getElementById('showIngresos').classList.remove('btn-primary');
-        document.getElementById('showIngresos').classList.add('btn-outline-primary');
-        
-        showChart(animalesData);
-    });
-});
 
-    
-</script>
+            // Mostrar el gráfico de ingresos por defecto
+            showChart(ingresosData);
 
-<?php include 'includes/footer.php'; ?>
+            // Agregar event listeners a los botones
+            document.getElementById('showIngresos').addEventListener('click', function() {
+                document.getElementById('showIngresos').classList.add('active');
+                document.getElementById('showIngresos').classList.remove('btn-outline-primary');
+                document.getElementById('showIngresos').classList.add('btn-primary');
+
+                document.getElementById('showAnimales').classList.remove('active');
+                document.getElementById('showAnimales').classList.remove('btn-primary');
+                document.getElementById('showAnimales').classList.add('btn-outline-primary');
+
+                showChart(ingresosData);
+            });
+
+            document.getElementById('showAnimales').addEventListener('click', function() {
+                document.getElementById('showAnimales').classList.add('active');
+                document.getElementById('showAnimales').classList.remove('btn-outline-primary');
+                document.getElementById('showAnimales').classList.add('btn-primary');
+
+                document.getElementById('showIngresos').classList.remove('active');
+                document.getElementById('showIngresos').classList.remove('btn-primary');
+                document.getElementById('showIngresos').classList.add('btn-outline-primary');
+
+                showChart(animalesData);
+            });
+        });
+    </script>
+
+    <?php include 'includes/footer.php'; ?>

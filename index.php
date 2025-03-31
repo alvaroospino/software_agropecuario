@@ -1,9 +1,12 @@
 <?php
+session_start(); // Asegura que la sesión está disponible
+
 require_once 'config/config.php';
 
 // Si el usuario está logueado, redirigir al dashboard
 if (isset($_SESSION['user_id'])) {
-    redirect('dashboard.php');
+    header("Location: dashboard.php"); // Redirige al usuario si ya está autenticado
+    exit();
 }
 
 // Incluir el encabezado

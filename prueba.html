@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroGestión - Plataforma de Gestión Ganadera</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- AOS - Animate On Scroll Library -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #81c784;
+            --accent-color: #f57c00;
+            --dark-color: #1b5e20;
+            --light-color: #f1f8e9;
+            --text-color: #263238;
+            --light-text: #f5f5f5;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-color);
+            overflow-x: hidden;
+            background-color: #fbfbfb;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+        }
+        
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+        
+        .nav-link {
+            font-weight: 500;
+            color: var(--text-color) !important;
+            margin: 0 10px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover:after {
+            width: 100%;
+        }
+        
+        .hero-section {
+            position: relative;
+            padding: 100px 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/api/placeholder/1200/800') center/cover no-repeat;
+            min-height: 90vh;
+            display: flex;
+            align-items: center;
+            color: white;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 10;
+        }
+        
+        .display-3 {
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .typed-text {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+        
+        .hero-btn {
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 50px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--dark-color);
+            border-color: var(--dark-color);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-outline-light:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .features-section {
+            padding: 100px 0;
+            position: relative;
+            background-color: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+            position: relative;
+            padding-bottom: 20px;
+        }
+        
+        .section-title:after {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 3px;
+            background-color: var(--primary-color);
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .feature-card {
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            height: 100%;
+            background-color: white;
+            border: none;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .feature-card:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            bottom: 0;
+            left: 0;
+            background: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover:after {
+            height: 8px;
+        }
+        
+        .feature-card i {
+            font-size: 3rem;
+            margin-bottom: 25px;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover i {
+            transform: scale(1.1);
+            color: var(--accent-color);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .feature-card p {
+            color: #6c757d;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        /* Counter Statistics Section */
+        .statistics-section {
+            padding: 80px 0;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .counter-box {
+            text-align: center;
+        }
+        
+        .counter-box i {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .counter {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .counter-text {
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Testimonials Section */
+        .testimonials-section {
+            padding: 100px 0;
+            background-color: var(--light-color);
+        }
+        
+        .testimonial-card {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin: 15px;
+        }
+        
+        .testimonial-content {
+            font-style: italic;
+            margin-bottom: 20px;
+            position: relative;
+            padding: 0 20px;
+        }
+        
+        .testimonial-content:before, 
+        .testimonial-content:after {
+            content: '"';
+            font-size: 50px;
+            color: var(--secondary-color);
+            position: absolute;
+            font-family: 'Georgia', serif;
+        }
+        
+        .testimonial-content:before {
+            top: -20px;
+            left: -10px;
+        }
+        
+        .testimonial-content:after {
+            bottom: -50px;
+            right: -10px;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+        
+        .author-info h5 {
+            margin-bottom: 5px;
+        }
+        
+        .author-info span {
+            color: #6c757d;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            padding: 80px 0;
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/api/placeholder/1200/800') center/cover fixed no-repeat;
+            color: white;
+            text-align: center;
+        }
+        
+        .cta-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+        
+        /* Footer */
+        footer {
+            background-color: #222;
+            color: #aaa;
+            padding: 70px 0 20px;
+        }
+        
+        .footer-heading {
+            color: white;
+            margin-bottom: 25px;
+            font-size: 1.3rem;
+        }
+        
+        .footer-link {
+            display: block;
+            color: #aaa;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .footer-link:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .footer-contact {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .footer-contact i {
+            margin-right: 15px;
+            color: var(--primary-color);
+        }
+        
+        .social-icons a {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .social-icons a:hover {
+            background-color: var(--primary-color);
+            transform: translateY(-5px);
+        }
+        
+        .copyright {
+            padding-top: 20px;
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        
+        /* Scroll to top button */
+        .scroll-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+        }
+        
+        .scroll-top.active {
+            opacity: 1;
+        }
+        
+        /* Animaciones adicionales */
+        .animated-number {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .animated-number.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Preloader */
+        .preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loader {
+            width: 80px;
+            height: 80px;
+            border: 8px solid var(--secondary-color);
+            border-top: 8px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .hero-section {
+                padding: 80px 0;
+                text-align: center;
+            }
+            
+            .hero-img {
+                margin-top: 50px;
+            }
+            
+            .feature-card {
+                margin-bottom: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-tree-fill me-2"></i>AgroGestión
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Características</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Testimonios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contacto</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white px-4 ms-2" href="<?= APP_URL ?>/views/login.php">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-content" data-aos="fade-right" data-aos-duration="1000">
+                    <h1 class="display-3">Gestión Ganadera Inteligente</h1>
+                    <p class="lead mb-4">La solución completa para <span class="typed-text"></span></p>
+                    <p class="mb-5">Optimiza tus procesos, toma decisiones basadas en datos y aumenta la rentabilidad de tu explotación ganadera con nuestra plataforma todo en uno.</p>
+                    <div class="d-flex flex-wrap">
+                        <a href="<?= APP_URL ?>/views/register.php" class="btn btn-primary hero-btn me-3 mb-3">Comenzar Ahora</a>
+                        <a href="#features" class="btn btn-outline-light hero-btn mb-3">Descubrir Funciones</a>
+                    </div>
+                </div>
+                <div class="col-lg-6 hero-img" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="300">
+                    <img src="assets/images/heroGanadero.jpg" alt="Dashboard de Gestión Ganadera" class="img-fluid rounded-lg shadow-lg">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <div class="section-title" data-aos="fade-up">
+                <h2>Características Principales</h2>
+                <p>Todo lo que necesitas para gestionar tu ganado de manera eficiente</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-card">
+                        <i class="bi bi-card-checklist"></i>
+                        <h3>Gestión de Animales</h3>
+                        <p>Registra información detallada de cada animal, incluyendo genealogía, historial médico, producción y más. Monitorea el rendimiento de cada individuo en tiempo real.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-card">
+                        <i class="bi bi-cash-stack"></i>
+                        <h3>Control Financiero</h3>
+                        <p>Administra ingresos, gastos, inversiones y costos operativos. Genera informes financieros detallados y analiza la rentabilidad de tu explotación.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-card">
+                        <i class="bi bi-journal-text"></i>
+                        <h3>Notas y Recordatorios</h3>
+                        <p>Nunca olvides una tarea importante. Programa recordatorios para vacunaciones, inseminaciones, revisiones veterinarias y otros eventos críticos.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-card">
+                        <i class="bi bi-graph-up"></i>
+                        <h3>Análisis y Estadísticas</h3>
+                        <p>Visualiza datos críticos con gráficos interactivos. Identifica tendencias, detecta problemas y toma decisiones basadas en información real.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-card">
+                        <i class="bi bi-calendar-check"></i>
+                        <h3>Calendario de Eventos</h3>
+                        <p>Planifica y visualiza todas las actividades en un calendario interactivo. Organiza mejor tu tiempo y el de tu equipo.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="600">
+                    <div class="feature-card">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                        <h3>Acceso desde Cualquier Lugar</h3>
+                        <p>Accede a tu información desde cualquier dispositivo con conexión a internet. Gestiona tu ganadería desde la oficina o en el campo.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="statistics-section">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 col-6 mb-4 mb-md-0">
+                    <div class="counter-box" data-aos="fade-up">
+                        <i class="bi bi-people"></i>
+                        <span class="counter" data-target="1500">0</span>
+                        <p class="counter-text">Ganaderos</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6 mb-4 mb-md-0">
+                    <div class="counter-box" data-aos="fade-up" data-aos-delay="100">
+                        <i class="bi bi-bank"></i>
+                        <span class="counter" data-target="250000">0</span>
+                        <p class="counter-text">Animales Registrados</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="counter-box" data-aos="fade-up" data-aos-delay="200">
+                        <i class="bi bi-check-circle"></i>
+                        <span class="counter" data-target="98">0</span>
+                        <p class="counter-text">% Satisfacción</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="counter-box" data-aos="fade-up" data-aos-delay="300">
+                        <i class="bi bi-trophy"></i>
+                        <span class="counter" data-target="12">0</span>
+                        <p class="counter-text">Años de Experiencia</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section">
+        <div class="container">
+            <div class="section-title" data-aos="fade-up">
+                <h2>Nuestros Clientes Opinan</h2>
+                <p>Descubre lo que dicen los ganaderos que ya utilizan nuestra plataforma</p>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            Desde que implementamos este sistema, hemos mejorado nuestra productividad en un 30%. La facilidad para rastrear los datos de cada animal ha sido revolucionaria para nuestro rancho.
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/api/placeholder/60/60" alt="Autor del Testimonio" class="author-img">
+                            <div class="author-info">
+                                <h5>Carlos Mendoza</h5>
+                                <span>Ganadero, Rancho Las Palmas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            El control financiero que ofrece la plataforma nos ha permitido identificar áreas de mejora y optimizar nuestros recursos. La inversión ha valido completamente la pena.
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/api/placeholder/60/60" alt="Autor del Testimonio" class="author-img">
+                            <div class="author-info">
+                                <h5>Laura Rodríguez</h5>
+                                <span>Administradora, Hacienda El Vergel</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            La interfaz es intuitiva y fácil de usar incluso para quienes no somos expertos en tecnología. El soporte técnico siempre está disponible cuando lo necesitamos.
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="/api/placeholder/60/60" alt="Autor del Testimonio" class="author-img">
+                            <div class="author-info">
+                                <h5>Miguel Ángel Pérez</h5>
+                                <span>Propietario, Finca Los Nogales</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center" data-aos="zoom-in">
+                    <h2>¿Listo para revolucionar la gestión de tu ganadería?</h2>
+                    <p class="lead mb-5">Únete a cientos de ganaderos que ya están optimizando sus operaciones con nuestra plataforma</p>
+                    <a href="<?= APP_URL ?>/views/register.php" class="btn btn-primary hero-btn me-3 mb-3">Registrarse Gratis</a>
+                    <a href="<?= APP_URL ?>/views/demo.php" class="btn btn-outline-light hero-btn mb-3">Solicitar Demo</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h4 class="footer-heading">AgroGestión</h4>
+                    <p>Soluciones tecnológicas avanzadas para el sector ganadero. Simplificamos la gestión y potenciamos la productividad de tu negocio.</p>
+                    <div class="social-icons mt-4">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4 mb-md-0">
+                    <h4 class="footer-heading">Enlaces</h4>
+                    <a href="#" class="footer-link">Inicio</a>
+                    <a href="#" class="footer-link">Características</a>
+                    <a href="#" class="footer-link">Precios</a>
+                    <a href="#" class="footer-link">Blog</a>
+                    <a href="#" class="footer-link">Contacto</a>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h4 class="footer-heading">Contáctanos</h4>
+                    <div class="footer-contact">
+                        <i class="bi bi-geo-alt"></i>
+                        <span>Av. Ganadería 123, Ciudad</span>
+                    </div>
+                    <div class="footer-contact">
+                        <i class="bi bi-telephone"></i>
+                        <span>+1 (555) 123-4567</span>
+                    </div>
+                    <div class="footer-contact">
+                        <i class="bi bi-envelope"></i>
+                        <span>info@agrogestion.com</span>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h4 class="footer-heading">Newsletter</h4>
+                    <p>Suscríbete para recibir noticias y actualizaciones.</p>
+                    <form class="mt-3">
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control" placeholder="Tu email" aria-label="Email" aria-describedby="button-addon2">
+                            <button class="btn btn-primary" type="button" id="button-addon2">Enviar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 AgroGestión. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to top button -->
+    <div class="scroll-top">
+        <i class="bi bi-arrow-up"></i>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+    
+    <script>
+      // Continuación del código JavaScript
+$(document).ready(function() {
+    // Preloader
+    setTimeout(function() {
+        $('.preloader').fadeOut('slow');
+    }, 1000);
+    
+    // Initialize AOS
+    AOS.init({
+        duration: 800,
+        easing: 'ease-in-out',
+        once: true
+    });
+    
+    // Initialize Typed.js
+    var typed = new Typed('.typed-text', {
+        strings: ['tu ganado', 'la producción', 'los recursos', 'las finanzas', 'el crecimiento'],
+        typeSpeed: 50,
+        backSpeed: 50,
+        backDelay: 2000,
+        loop: true
+    });
+    
+    // Counter Animation
+    function startCounter() {
+        $('.counter').each(function() {
+            var $this = $(this);
+            var countTo = $this.attr('data-target');
+            
+            $({ countNum: 0 }).animate(
+                { countNum: countTo },
+                {
+                    duration: 2000,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum).toLocaleString());
+                    },
+                    complete: function() {
+                        $this.text(parseInt(countTo).toLocaleString());
+                    }
+                }
+            );
+        });
+    }
+    
+    // Start counter when element is in viewport
+    var counterSection = $('.statistics-section');
+    $(window).scroll(function() {
+        var windowScroll = $(window).scrollTop();
+        var counterOffset = counterSection.offset().top - window.innerHeight + 100;
+        
+        if (windowScroll > counterOffset && !counterSection.hasClass('counted')) {
+            counterSection.addClass('counted');
+            startCounter();
+        }
+    });
+    
+    // Scroll to top button
+    $(window).scroll(function() {
+        if ($(this).scrollTop() > 300) {
+            $('.scroll-top').addClass('active');
+        } else {
+            $('.scroll-top').removeClass('active');
+        }
+    });
+    
+    $('.scroll-top').click(function() {
+        $('html, body').animate({
+            scrollTop: 0
+        }, 800);
+        return false;
+    });
+    
+    // Smooth scrolling for anchor links
+    $('a[href*="#"]').not('[href="#"]').not('[href="#0"]').click(function(event) {
+        if (
+            location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && 
+            location.hostname == this.hostname
+        ) {
+            var target = $(this.hash);
+            target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
+            if (target.length) {
+                event.preventDefault();
+                $('html, body').animate({
+                    scrollTop: target.offset().top - 70
+                }, 1000);
+            }
+        }
+    });
+    
+    // Navbar change on scroll
+    $(window).scroll(function() {
+        if ($(this).scrollTop() > 50) {
+            $('.navbar').css('padding', '10px 0');
+            $('.navbar').css('box-shadow', '0 2px 15px rgba(0, 0, 0, 0.1)');
+        } else {
+            $('.navbar').css('padding', '15px 0');
+            $('.navbar').css('box-shadow', '0 2px 15px rgba(0, 0, 0, 0.1)');
+        }
+    });
+    
+    // Animación de números al entrar en viewport
+    $('.animated-number').each(function() {
+        var $this = $(this);
+        
+        $(window).scroll(function() {
+            var topOfElement = $this.offset().top;
+            var bottomOfElement = $this.offset().top + $this.outerHeight();
+            var bottomOfScreen = $(window).scrollTop() + $(window).height();
+            var topOfScreen = $(window).scrollTop();
+            
+            if ((bottomOfScreen > topOfElement) && (topOfScreen < bottomOfElement)) {
+                $this.addClass('visible');
+            }
+        });
+    });
+    
+    // Efecto de hover para tarjetas de características
+    $('.feature-card').hover(function() {
+        $(this).find('i').addClass('animate__animated animate__heartBeat');
+    }, function() {
+        $(this).find('i').removeClass('animate__animated animate__heartBeat');
+    });
+    
+    // Form validation
+    $('.newsletter-form').submit(function(e) {
+        e.preventDefault();
+        var email = $('.newsletter-email').val();
+        if (email.length > 0) {
+            $('.newsletter-message').html('<div class="alert alert-success">¡Gracias por suscribirte a nuestro boletín!</div>');
+            $('.newsletter-email').val('');
+        } else {
+            $('.newsletter-message').html('<div class="alert alert-danger">Por favor, introduce un email válido.</div>');
+        }
+    });
+    
+    // Modal demo video
+    $('.video-btn').click(function() {
+        var videoSrc = $(this).data('src');
+        $('#demoVideo').attr('src', videoSrc + '?autoplay=1&modestbranding=1&showinfo=0');
+    });
+    
+    $('#videoModal').on('hidden.bs.modal', function() {
+        $('#demoVideo').attr('src', '');
+    });
+    
+    // Parallax effect
+    $(window).scroll(function() {
+        var scrollPosition = $(window).scrollTop();
+        $('.hero-section').css('background-position', 'center ' + (scrollPosition * 0.5) + 'px');
+        $('.cta-section').css('background-position', 'center ' + (scrollPosition * 0.2) + 'px');
+    });
+    
+    // Active navigation item
+    $(window).on('scroll', function() {
+        var scrollDistance = $(window).scrollTop();
+        $('section').each(function(i) {
+            if ($(this).position().top <= scrollDistance + 100) {
+                $('.navbar-nav a.active').removeClass('active');
+                $('.navbar-nav a').eq(i).addClass('active');
+            }
+        });
+    }).scroll();
+    
+    // Tooltip initialization
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Popup for notification
+    setTimeout(function() {
+        $('#notificationModal').modal('show');
+    }, 5000);
+    
+    // Botón para demostración interactiva
+    $('.demo-btn').click(function() {
+        // Aquí puedes agregar código para iniciar la demostración interactiva
+        alert('Iniciando demostración interactiva...');
+    });
+    
+    // Efecto de animación para CTA
+    $('.cta-section').mousemove(function(e) {
+        var moveX = (e.pageX * -1/15);
+        var moveY = (e.pageY * -1/15);
+        $(this).css('background-position', moveX + 'px ' + moveY + 'px');
+    });
+});
+    </script>
+    

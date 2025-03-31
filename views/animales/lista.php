@@ -69,7 +69,7 @@ include '../../includes/header.php';
         <table class="table table-hover table-custom">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Nombre</th>
                     <th>Tipo Producción</th>
                     <th>Fecha Nacimiento</th>
                     <th>Peso (kg)</th>
@@ -80,7 +80,7 @@ include '../../includes/header.php';
             <tbody>
                 <?php foreach ($animales as $animal): ?>
                     <tr>
-                        <td><?= $animal['identificacion'] ?></td>
+                        <td><?= $animal['nombre'] ?></td>
                         <td><?= $animal['tipo_produccion'] ?></td>
                         <td><?= $animal['fecha_nacimiento'] ? date('d/m/Y', strtotime($animal['fecha_nacimiento'])) : 'No registrada' ?></td>
                         <td><?= $animal['peso'] ?></td>

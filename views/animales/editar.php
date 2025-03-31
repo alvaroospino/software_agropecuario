@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 } else {
     // Pre-llenar formulario con datos actuales
-    $identificacion = $animal['identificacion'];
+    $identificacion = $animal['nombre'];
     $tipo_produccion = $animal['tipo_produccion'];
     $fecha_nacimiento = $animal['fecha_nacimiento'];
     $peso = $animal['peso'];

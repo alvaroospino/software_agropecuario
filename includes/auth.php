@@ -1,8 +1,4 @@
 <?php
-// Al inicio de auth.php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 // En auth.php
 require_once __DIR__ . '/../config/config.php';
 
